@@ -6,10 +6,13 @@ function checkApp(appSlug) {
     if (req.user.role === 'superadmin') return next();
 
     const db = getDB();
-    // tenant_id = ID de la société (admin.id pour les admins, company_id pour les users)
+    // Résolution robuste du tenant (même logique que dashboard.js)
+    const userRow = db.prepare('SELECT company_id FROM users WHERE id = ?').get(req.user.id);
+    const tenantId = userRow?.company_id || req.user.id;
+
     const row = db.prepare(
       'SELECT active FROM tenant_apps WHERE user_id = ? AND app_slug = ?'
-    ).get(req.user.tenant_id, appSlug);
+    ).get(tenantId, appSlug);
 
     if (!row || !row.active) {
       return res.status(403).json({

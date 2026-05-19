@@ -25,10 +25,13 @@ router.post('/login', (req, res) => {
   if (!user.active)
     return res.status(403).json({ error: 'Compte désactivé' });
 
-  // tenant_id = l'ID de la société (pour les sous-utilisateurs = company_id, pour les admins = leur propre id)
-  const tenant_id = (user.role === 'admin' || user.role === 'superadmin')
-    ? user.id
-    : (user.company_id || user.id);
+  // tenant_id = l'ID de la tête de compte de la société
+  // Règle : si l'utilisateur a un company_id (sous-utilisateur quel que soit son rôle),
+  //         le tenant est sa société (company_id).
+  //         Sinon (superadmin, admin tête de compte) le tenant est son propre id.
+  // IMPORTANT : un sous-admin (role='admin' + company_id défini) doit utiliser
+  //             company_id comme tenant, PAS son propre id.
+  const tenant_id = user.company_id || user.id;
 
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role, name: user.name, tenant_id },
