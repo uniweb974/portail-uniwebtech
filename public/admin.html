@@ -322,19 +322,27 @@
 
       const btn = document.querySelector('.modal-footer .btn-primary');
       if (btn) { btn.disabled = true; btn.textContent = '⏳ Création…'; }
+      Modal._locked = true;
 
-      const res = await api.post(`/api/admin/clients/${currentCompanyId}/users`, { name, email, password, role });
+      try {
+        const res = await api.post(`/api/admin/clients/${currentCompanyId}/users`, { name, email, password, role });
+        Modal._locked = false;
 
-      if (btn) { btn.disabled = false; btn.textContent = 'Créer'; }
-
-      if (res?.success) {
-        Modal.close();
-        toast(`✅ Utilisateur "${name}" créé`, 'success');
-        await loadSubUsers(currentCompanyId);
-        await loadStats();
-      } else {
-        err.textContent = res?.error || 'Erreur inconnue';
+        if (res?.success) {
+          Modal.close();
+          toast(`✅ Utilisateur "${name}" créé`, 'success');
+          await loadSubUsers(currentCompanyId);
+          await loadStats();
+        } else {
+          err.textContent = res?.error || 'Erreur inconnue';
+          err.style.display = 'block';
+          if (btn) { btn.disabled = false; btn.textContent = 'Créer'; }
+        }
+      } catch (e) {
+        Modal._locked = false;
+        err.textContent = 'Erreur réseau — vérifiez votre connexion';
         err.style.display = 'block';
+        if (btn) { btn.disabled = false; btn.textContent = 'Créer'; }
       }
     }
 
