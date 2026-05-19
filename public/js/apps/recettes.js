@@ -227,12 +227,102 @@ async function deleteTransaction(id) {
   });
 }
 
-// ── EXPORT PDF ────────────────────────────────────────────────────────────────
+// ── EXPORT (PDF / EXCEL) ──────────────────────────────────────────────────────
 
-function exportPDF() {
-  const from = document.getElementById('f-from')?.value || '';
-  const to   = document.getElementById('f-to')?.value   || '';
-  window.open(`${BASE}/export-pdf?from=${from}&to=${to}`, '_blank');
+let _exportFmt = 'pdf';
+
+function openExportModal() {
+  _exportFmt = 'pdf';
+  const now  = new Date();
+  const y    = now.getFullYear();
+  const m    = String(now.getMonth() + 1).padStart(2, '0');
+  const defFrom = `${y}-${m}-01`;
+  const defTo   = new Date(y, now.getMonth() + 1, 0).toISOString().split('T')[0];
+
+  Modal.open({
+    title: '📤 Exporter le livre des recettes',
+    body: `
+      <div class="form-group" style="margin-bottom:16px">
+        <label class="form-label">Format</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px">
+          <div id="xfmt-pdf" onclick="selectExportFmt('pdf')"
+            style="border:2px solid var(--primary);background:rgba(93,40,143,.12);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;color:var(--primary)">
+            <div style="font-size:1.4rem">📄</div>
+            <div style="font-weight:700;margin-top:4px">PDF</div>
+          </div>
+          <div id="xfmt-xlsx" onclick="selectExportFmt('xlsx')"
+            style="border:2px solid var(--border);background:transparent;border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;color:var(--text-m)">
+            <div style="font-size:1.4rem">📊</div>
+            <div style="font-weight:700;margin-top:4px">Excel (.xlsx)</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px">
+        <label class="form-label">Période</label>
+        <select class="form-control" id="xperiod" onchange="onExportPeriod()">
+          <option value="this-month">Ce mois-ci</option>
+          <option value="last-month">Mois dernier</option>
+          <option value="this-year">Cette année</option>
+          <option value="custom">Personnalisé</option>
+        </select>
+      </div>
+      <div id="xcustom" style="display:none">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Du</label>
+            <input class="form-control" id="xfrom" type="date" value="${defFrom}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Au</label>
+            <input class="form-control" id="xto" type="date" value="${defTo}">
+          </div>
+        </div>
+      </div>`,
+    footer: `<button class="btn btn-ghost" onclick="Modal.close()">Annuler</button>
+             <button class="btn btn-primary" onclick="doExport()">📥 Télécharger</button>`
+  });
+}
+
+function selectExportFmt(fmt) {
+  _exportFmt = fmt;
+  const pdf  = document.getElementById('xfmt-pdf');
+  const xlsx = document.getElementById('xfmt-xlsx');
+  if (!pdf || !xlsx) return;
+  if (fmt === 'pdf') {
+    pdf.style.cssText  = 'border:2px solid var(--primary);background:rgba(93,40,143,.12);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;color:var(--primary)';
+    xlsx.style.cssText = 'border:2px solid var(--border);background:transparent;border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;color:var(--text-m)';
+  } else {
+    xlsx.style.cssText = 'border:2px solid var(--secondary);background:rgba(0,143,104,.12);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;color:var(--secondary)';
+    pdf.style.cssText  = 'border:2px solid var(--border);background:transparent;border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;color:var(--text-m)';
+  }
+}
+
+function onExportPeriod() {
+  const period = document.getElementById('xperiod')?.value;
+  const custom = document.getElementById('xcustom');
+  if (!custom) return;
+  custom.style.display = period === 'custom' ? 'block' : 'none';
+}
+
+function _periodDates(period) {
+  const now = new Date();
+  const y   = now.getFullYear();
+  const m   = now.getMonth();
+  if (period === 'this-month')  return { from: new Date(y, m, 1).toISOString().split('T')[0], to: new Date(y, m + 1, 0).toISOString().split('T')[0] };
+  if (period === 'last-month')  return { from: new Date(y, m - 1, 1).toISOString().split('T')[0], to: new Date(y, m, 0).toISOString().split('T')[0] };
+  if (period === 'this-year')   return { from: `${y}-01-01`, to: `${y}-12-31` };
+  return {
+    from: document.getElementById('xfrom')?.value || '',
+    to:   document.getElementById('xto')?.value   || ''
+  };
+}
+
+function doExport() {
+  const period = document.getElementById('xperiod')?.value || 'this-month';
+  const { from, to } = _periodDates(period);
+  Modal.close();
+  const route = _exportFmt === 'xlsx' ? 'export-excel' : 'export-pdf';
+  window.open(`${BASE}/${route}?from=${from}&to=${to}`, '_blank');
 }
 
 // ── PARAMÈTRES ────────────────────────────────────────────────────────────────

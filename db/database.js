@@ -14,7 +14,9 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const DB_PATH = process.env.DB_PATH
-  || path.join(__dirname, '..', 'data', 'portail.db');
+  || (process.env.NODE_ENV === 'production'
+      ? '/data/portail.db'                              // Railway Volume monté sur /data
+      : path.join(__dirname, '..', 'data', 'portail.db')); // dev local
 
 let _sqlJs = null;   // module sql.js initialisé
 let _db    = null;   // instance DBWrapper
