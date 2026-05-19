@@ -17,8 +17,6 @@ const flotteRoutes     = require('./routes/apps/flottepei');
 const app = express();
 const PORT = process.env.PORT || 3010;
 
-initDB();
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -61,8 +59,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message || 'Erreur serveur interne' });
 });
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 PORTAIL démarré sur http://localhost:${PORT}`);
-  console.log(`   Dashboard → http://localhost:${PORT}/dashboard`);
-  console.log(`   Admin     → http://localhost:${PORT}/admin`);
-});
+initDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`\n🚀 PORTAIL démarré sur http://localhost:${PORT}`);
+      console.log(`   Dashboard → http://localhost:${PORT}/dashboard`);
+      console.log(`   Admin     → http://localhost:${PORT}/admin`);
+    });
+  })
+  .catch(err => {
+    console.error('❌ Impossible d\'initialiser la base de données :', err);
+    process.exit(1);
+  });

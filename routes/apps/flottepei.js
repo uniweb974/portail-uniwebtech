@@ -13,75 +13,7 @@ const guardAdmin = [requireAuth, checkApp(APP), requireCompanyAdmin];
 
 const PLAN_LIMITS = { basic: 3, pro: 10, enterprise: Infinity };
 
-// ─── INIT TABLES (auto au 1er chargement) ────────────────────────────────────
-
-let _dbReady = false;
-function initTables() {
-  if (_dbReady) return;
-  getDB().exec(`
-    CREATE TABLE IF NOT EXISTS fp_vehicules (
-      id               INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id          INTEGER NOT NULL,
-      immatriculation  TEXT    NOT NULL,
-      marque           TEXT    NOT NULL,
-      modele           TEXT    NOT NULL,
-      annee            INTEGER,
-      km_actuel        INTEGER DEFAULT 0,
-      statut           TEXT    DEFAULT 'disponible',
-      date_ct          TEXT,
-      date_revision    TEXT,
-      date_assurance   TEXT,
-      notes            TEXT,
-      created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-    CREATE TABLE IF NOT EXISTS fp_chauffeurs (
-      id               INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id          INTEGER NOT NULL,
-      nom              TEXT    NOT NULL,
-      prenom           TEXT    NOT NULL,
-      numero_permis    TEXT,
-      validite_permis  TEXT,
-      actif            INTEGER DEFAULT 1,
-      created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id)
-    );
-    CREATE TABLE IF NOT EXISTS fp_trajets (
-      id               INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id          INTEGER NOT NULL,
-      vehicule_id      INTEGER NOT NULL,
-      chauffeur_id     INTEGER,
-      date             TEXT    NOT NULL,
-      depart           TEXT    NOT NULL,
-      arrivee          TEXT    NOT NULL,
-      km_debut         INTEGER NOT NULL,
-      km_fin           INTEGER NOT NULL,
-      km_parcourus     INTEGER NOT NULL DEFAULT 0,
-      motif            TEXT    DEFAULT 'pro',
-      description      TEXT,
-      created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id)     REFERENCES users(id),
-      FOREIGN KEY (vehicule_id) REFERENCES fp_vehicules(id) ON DELETE CASCADE,
-      FOREIGN KEY (chauffeur_id) REFERENCES fp_chauffeurs(id)
-    );
-    CREATE TABLE IF NOT EXISTS fp_carburant (
-      id               INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id          INTEGER NOT NULL,
-      vehicule_id      INTEGER NOT NULL,
-      date             TEXT    NOT NULL,
-      litres           REAL    NOT NULL,
-      prix_litre       REAL    NOT NULL,
-      montant          REAL    NOT NULL,
-      station          TEXT,
-      km_compteur      INTEGER,
-      created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id)     REFERENCES users(id),
-      FOREIGN KEY (vehicule_id) REFERENCES fp_vehicules(id) ON DELETE CASCADE
-    );
-  `);
-  _dbReady = true;
-}
-router.use((req, res, next) => { initTables(); next(); });
+// Tables fp_* créées au démarrage dans db/database.js — rien à faire ici.
 
 // ─── STATS DASHBOARD ─────────────────────────────────────────────────────────
 
