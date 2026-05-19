@@ -451,16 +451,22 @@ function _migrate (db) {
 // ── Seed Super Admin ──────────────────────────────────────────────────────────
 
 function _seedSuperAdmin (db) {
-  const email    = process.env.ADMIN_EMAIL    || 'admin@portail.fr';
+  const email    = (process.env.ADMIN_EMAIL    || 'admin@portail.fr').toLowerCase().trim();
   const password = process.env.ADMIN_PASSWORD || 'Admin123!';
+  const hash     = bcrypt.hashSync(password, 10);
 
   const existing = db.prepare("SELECT id FROM users WHERE role='superadmin'").get();
   if (!existing) {
-    const hash = bcrypt.hashSync(password, 10);
+    // Première création
     db.prepare(`INSERT INTO users (email, password_hash, role, name, active)
                 VALUES (?, ?, 'superadmin', 'Super Admin', 1)`)
       .run(email, hash);
-    console.log(`✅ Super Admin créé : ${email} / ${password}`);
+    console.log(`✅ Super Admin créé : ${email}`);
+  } else {
+    // Met toujours à jour email + mot de passe depuis les variables d'env
+    db.prepare(`UPDATE users SET email=?, password_hash=?, active=1 WHERE role='superadmin'`)
+      .run(email, hash);
+    console.log(`✅ Super Admin mis à jour : ${email}`);
   }
 
   /* Garantit que toutes les sociétés ont leurs lignes tenant_apps */
