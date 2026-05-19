@@ -1,7 +1,17 @@
 require('dotenv').config();
+const fs   = require('fs');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+
+// ── Garantit que /data existe avant l'initialisation de la DB ─────────────────
+const DB_DIR = path.dirname(process.env.DB_PATH || '/data/portail.db');
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+  console.log(`📁 Dossier créé : ${DB_DIR}`);
+} else {
+  console.log(`📁 Dossier DB OK : ${DB_DIR}`);
+}
 
 const { initDB } = require('./db/database');
 const authRoutes       = require('./routes/auth');
