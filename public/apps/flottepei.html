@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlottePéi — Portail</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="layout">
+
+  <header class="topbar">
+    <a href="/dashboard" class="btn-back">← <span>Portail</span></a>
+    <div class="topbar-app-name">🚗 FlottePéi</div>
+    <div class="topbar-user">
+      <span id="user-name" style="color:var(--text-m);font-size:.85rem"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <div class="nav-section-title">Navigation</div>
+    <button class="nav-item" data-section="dashboard"><span class="nav-icon">📊</span> Tableau de bord</button>
+    <button class="nav-item" data-section="vehicules"><span class="nav-icon">🚗</span> Flotte</button>
+    <button class="nav-item" data-section="carnets"><span class="nav-icon">📋</span> Carnet de bord</button>
+    <button class="nav-item admin-only" data-section="chauffeurs"><span class="nav-icon">👤</span> Chauffeurs</button>
+    <button class="nav-item" data-section="carburant"><span class="nav-icon">⛽</span> Carburant</button>
+
+    <!-- Plan tarifaire (admin seulement) -->
+    <div class="admin-only" style="margin-top:auto;padding:12px 8px 8px">
+      <div class="nav-section-title">Abonnement</div>
+      <div id="plan-badge" style="font-size:.72rem;padding:8px;background:rgba(93,40,143,.2);border:1px solid var(--border);border-radius:8px;color:var(--text-m);line-height:1.6"></div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ══ TABLEAU DE BORD ══════════════════════════════════════════════════ -->
+    <section id="section-dashboard" class="section">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">FlottePéi — Réunion 974</h2>
+          <p class="page-subtitle">Gestion de flotte professionnelle</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Actualiser</button>
+      </div>
+      <div class="stats-grid" id="stats-cards"></div>
+      <div id="alertes-container"></div>
+      <div class="card mt-2">
+        <div class="card-title" style="margin-bottom:12px">Derniers trajets</div>
+        <div id="recent-trajets"></div>
+      </div>
+    </section>
+
+    <!-- ══ FLOTTE VÉHICULES ═════════════════════════════════════════════════ -->
+    <section id="section-vehicules" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Flotte de véhicules</h2>
+        <button class="btn btn-primary admin-only" onclick="openVehiculeModal()">+ Véhicule</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Immatriculation</th>
+            <th>Véhicule</th>
+            <th>Km actuel</th>
+            <th>Statut</th>
+            <th>🔍 Contrôle tech.</th>
+            <th>🔧 Révision</th>
+            <th>🛡️ Assurance</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="vehicules-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ CARNET DE BORD ═══════════════════════════════════════════════════ -->
+    <section id="section-carnets" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Carnet de bord</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="exportCarnet()">⬇ Export PDF</button>
+          <button class="btn btn-primary" onclick="openTrajetModal()">+ Trajet</button>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="search-bar mb-2" style="flex-wrap:wrap;gap:8px">
+        <select class="form-control" id="f-vehicule" style="width:auto" onchange="loadTrajets()">
+          <option value="">Tous les véhicules</option>
+        </select>
+        <select class="form-control" id="f-chauffeur" style="width:auto" onchange="loadTrajets()">
+          <option value="">Tous les chauffeurs</option>
+        </select>
+        <select class="form-control" id="f-motif" style="width:auto" onchange="loadTrajets()">
+          <option value="">Pro + Perso</option>
+          <option value="pro">🔵 Pro uniquement</option>
+          <option value="perso">⚪ Perso uniquement</option>
+        </select>
+        <input class="form-control" id="f-from" type="date" style="width:auto" onchange="loadTrajets()">
+        <input class="form-control" id="f-to"   type="date" style="width:auto" onchange="loadTrajets()">
+      </div>
+
+      <div id="carnets-stats" style="margin-bottom:12px"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Véhicule</th><th>Chauffeur</th>
+            <th>Départ</th><th>Arrivée</th><th>Km +</th><th>Motif</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="trajets-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ CHAUFFEURS ═══════════════════════════════════════════════════════ -->
+    <section id="section-chauffeurs" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Chauffeurs</h2>
+        <button class="btn btn-primary admin-only" onclick="openChauffeurModal()">+ Chauffeur</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Nom</th><th>N° Permis</th><th>Validité permis</th><th>Statut</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="chauffeurs-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ CARBURANT ════════════════════════════════════════════════════════ -->
+    <section id="section-carburant" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Suivi carburant</h2>
+        <button class="btn btn-primary" onclick="openCarburantModal()">+ Plein</button>
+      </div>
+      <div style="margin-bottom:12px">
+        <select class="form-control" id="f-veh-carb" style="width:auto;display:inline-block" onchange="loadCarburant()">
+          <option value="">Tous les véhicules</option>
+        </select>
+      </div>
+      <div id="carburant-stats" style="margin-bottom:16px"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Véhicule</th><th>Station</th>
+            <th>Litres</th><th>Prix/L</th><th>Montant</th><th>Compteur</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="carburant-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/apps/flottepei.js"></script>
+</body>
+</html>

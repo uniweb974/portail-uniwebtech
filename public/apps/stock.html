@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion Stock — Portail</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="layout">
+
+  <header class="topbar">
+    <a href="/dashboard" class="btn-back">← <span>Portail</span></a>
+    <div class="topbar-app-name">📦 Gestion Stock</div>
+    <div class="topbar-user">
+      <span id="user-name" style="color:var(--text-m);font-size:.85rem"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <div class="nav-section-title">Navigation</div>
+    <button class="nav-item" data-section="dashboard"><span class="nav-icon">📊</span> Tableau de bord</button>
+    <button class="nav-item" data-section="produits"><span class="nav-icon">📦</span> Produits</button>
+    <button class="nav-item" data-section="categories"><span class="nav-icon">🏷️</span> Catégories</button>
+    <button class="nav-item" data-section="clients"><span class="nav-icon">👥</span> Clients</button>
+    <button class="nav-item" data-section="commandes"><span class="nav-icon">🛒</span> Commandes</button>
+    <button class="nav-item" data-section="livraisons"><span class="nav-icon">🚚</span> Livraisons</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="section-dashboard" class="section">
+      <div class="page-header"><h2 class="page-title">Tableau de bord</h2></div>
+      <div class="stats-grid" id="stats-cards"></div>
+      <div class="card mt-2">
+        <div class="card-title" style="margin-bottom:12px">Dernières commandes</div>
+        <div id="recent-commandes"></div>
+      </div>
+    </section>
+
+    <!-- PRODUITS -->
+    <section id="section-produits" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Produits</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="loadProduits(true)">⚠️ Alertes stock</button>
+          <button class="btn btn-primary admin-only" onclick="openProduitModal()">+ Produit</button>
+        </div>
+      </div>
+      <div class="search-bar mb-2">
+        <div class="search-input-wrap"><span class="search-icon">🔍</span>
+          <input class="form-control" id="search-produit" placeholder="Rechercher…" oninput="loadProduits()"></div>
+        <select class="form-control" id="filter-categorie" style="width:auto" onchange="loadProduits()">
+          <option value="">Toutes catégories</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Produit</th><th>SKU</th><th>Catégorie</th><th>Prix HT</th><th>Stock</th><th>Actions</th></tr></thead>
+        <tbody id="produits-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- CATÉGORIES -->
+    <section id="section-categories" class="section">
+      <div class="page-header"><h2 class="page-title">Catégories</h2>
+        <button class="btn btn-primary admin-only" onclick="openCatModal()">+ Catégorie</button></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nom</th><th>Couleur</th><th>Actions</th></tr></thead>
+        <tbody id="categories-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- CLIENTS -->
+    <section id="section-clients" class="section">
+      <div class="page-header"><h2 class="page-title">Clients</h2>
+        <button class="btn btn-primary admin-only" onclick="openClientModal()">+ Client</button></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Adresse</th><th>Actions</th></tr></thead>
+        <tbody id="stock-clients-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- COMMANDES -->
+    <section id="section-commandes" class="section">
+      <div class="page-header"><h2 class="page-title">Commandes</h2>
+        <button class="btn btn-primary" onclick="openCommandeModal()">+ Commande</button></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>N°</th><th>Client</th><th>Statut</th><th>Paiement</th><th>Total TTC</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="commandes-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- LIVRAISONS -->
+    <section id="section-livraisons" class="section">
+      <div class="page-header"><h2 class="page-title">Livraisons</h2></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Commande</th><th>Client</th><th>Livreur</th><th>Statut</th><th>Date prévue</th><th>Actions</th></tr></thead>
+        <tbody id="livraisons-body"></tbody></table>
+      </div>
+    </section>
+
+  </main>
+</div>
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/apps/stock.js"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livre des Recettes — Portail</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="layout">
+
+  <header class="topbar">
+    <a href="/dashboard" class="btn-back">← <span>Portail</span></a>
+    <div class="topbar-app-name">📒 Livre des Recettes</div>
+    <div class="topbar-user">
+      <span id="user-name" style="color:var(--text-m);font-size:.85rem"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <div class="nav-section-title">Navigation</div>
+    <button class="nav-item" data-section="dashboard"><span class="nav-icon">📊</span> Tableau de bord</button>
+    <button class="nav-item" data-section="ajouter"><span class="nav-icon">➕</span> Ajouter</button>
+    <button class="nav-item" data-section="historique"><span class="nav-icon">📜</span> Historique</button>
+    <button class="nav-item admin-only" data-section="parametres"><span class="nav-icon">⚙️</span> Paramètres</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="section-dashboard" class="section">
+      <div class="page-header"><h2 class="page-title">Tableau de bord</h2></div>
+      <div class="stats-grid" id="stats-cards"></div>
+      <div class="card mt-2">
+        <div class="card-title" style="margin-bottom:12px">Dernières opérations</div>
+        <div id="recent-transactions"></div>
+      </div>
+    </section>
+
+    <!-- AJOUTER -->
+    <section id="section-ajouter" class="section">
+      <div class="page-header"><h2 class="page-title">Nouvelle opération</h2></div>
+      <div class="card" style="max-width:560px">
+        <form id="add-form">
+          <!-- TYPE -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+            <label style="cursor:pointer">
+              <input type="radio" name="type" value="income" id="type-income" checked style="display:none">
+              <div id="btn-income" onclick="selectType('income')"
+                style="background:rgba(0,143,104,.2);border:2px solid var(--secondary);border-radius:var(--radius);padding:16px;text-align:center;color:var(--secondary)">
+                <div style="font-size:1.5rem">💰</div>
+                <div style="font-weight:700;margin-top:4px">Recette</div>
+              </div>
+            </label>
+            <label style="cursor:pointer">
+              <input type="radio" name="type" value="expense" id="type-expense" style="display:none">
+              <div id="btn-expense" onclick="selectType('expense')"
+                style="background:transparent;border:2px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;color:var(--text-m)">
+                <div style="font-size:1.5rem">💸</div>
+                <div style="font-weight:700;margin-top:4px">Dépense</div>
+              </div>
+            </label>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Montant (€) *</label>
+              <input class="form-control" name="amount" type="number" step="0.01" min="0.01" placeholder="0.00" required></div>
+            <div class="form-group"><label class="form-label">Date *</label>
+              <input class="form-control" name="date" type="date" required></div>
+            <div class="form-group"><label class="form-label">Catégorie</label>
+              <input class="form-control" name="category" list="cats-list" placeholder="Ex: Cotisations, Loyer…">
+              <datalist id="cats-list"></datalist></div>
+            <div class="form-group"><label class="form-label">Mode de paiement</label>
+              <select class="form-control" name="payment_method">
+                <option value="">Non précisé</option>
+                <option value="espèces">Espèces</option>
+                <option value="virement">Virement</option>
+                <option value="chèque">Chèque</option>
+                <option value="carte">Carte bancaire</option>
+                <option value="prélèvement">Prélèvement</option>
+              </select></div>
+          </div>
+          <div class="form-group"><label class="form-label">Description</label>
+            <input class="form-control" name="description" placeholder="Détail de l'opération"></div>
+          <button type="submit" class="btn btn-primary mt-2">Enregistrer</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- HISTORIQUE -->
+    <section id="section-historique" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Historique</h2>
+        <button class="btn btn-secondary" onclick="exportPDF()">📄 Exporter PDF</button>
+      </div>
+      <div class="search-bar mb-2" style="flex-wrap:wrap">
+        <select class="form-control" id="f-type" style="width:auto" onchange="loadHistorique()">
+          <option value="">Tout</option>
+          <option value="income">Recettes</option>
+          <option value="expense">Dépenses</option>
+        </select>
+        <input class="form-control" id="f-from" type="date" style="width:auto" onchange="loadHistorique()" placeholder="Du">
+        <input class="form-control" id="f-to"   type="date" style="width:auto" onchange="loadHistorique()" placeholder="Au">
+        <div class="search-input-wrap"><span class="search-icon">🔍</span>
+          <input class="form-control" id="f-search" placeholder="Rechercher…" oninput="loadHistorique()"></div>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Date</th><th>Type</th><th>Catégorie</th><th>Description</th><th>Mode</th><th>Montant</th><th>Actions</th></tr></thead>
+        <tbody id="historique-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- PARAMÈTRES -->
+    <section id="section-parametres" class="section">
+      <div class="page-header"><h2 class="page-title">Paramètres</h2></div>
+      <div class="card" style="max-width:400px">
+        <div class="card-title" style="margin-bottom:16px">Solde d'ouverture de l'exercice</div>
+        <div class="form-group">
+          <label class="form-label">Solde initial (€)</label>
+          <input class="form-control" id="opening-balance" type="number" step="0.01" placeholder="0.00">
+        </div>
+        <p style="font-size:.8rem;color:var(--text-m);margin-bottom:16px">
+          Le solde de clôture de l'exercice précédent à reporter comme solde d'ouverture.
+        </p>
+        <button class="btn btn-primary" onclick="saveSettings()">Enregistrer</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/apps/recettes.js"></script>
+</body>
+</html>

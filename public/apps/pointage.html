@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pointage — Portail</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="layout">
+
+  <header class="topbar">
+    <a href="/dashboard" class="btn-back">← <span>Portail</span></a>
+    <div class="topbar-app-name">✅ Pointage</div>
+    <div class="topbar-user">
+      <span id="user-name" style="color:var(--text-m);font-size:.85rem"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <div class="nav-section-title">Navigation</div>
+    <button class="nav-item" data-section="pointage"><span class="nav-icon">✅</span> Pointage</button>
+    <button class="nav-item" data-section="semaine"><span class="nav-icon">📅</span> Semaine</button>
+    <button class="nav-item admin-only" data-section="employes"><span class="nav-icon">👥</span> Employés</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- POINTAGE RAPIDE -->
+    <section id="section-pointage" class="section">
+      <div class="page-header">
+        <div>
+          <h2 class="page-title">Pointage</h2>
+          <div id="clock" class="time-display" style="font-size:1.8rem;margin-top:4px">--:--:--</div>
+        </div>
+        <div style="text-align:right;color:var(--text-m);font-size:.85rem" id="today-date"></div>
+      </div>
+
+      <!-- Sélecteur employé -->
+      <div class="card mb-2">
+        <div class="form-group" style="margin-bottom:8px">
+          <label class="form-label">Sélectionner un employé</label>
+          <select class="form-control" id="emp-select" onchange="loadTodayPointages()" style="font-size:1rem">
+            <option value="">— Choisir —</option>
+          </select>
+        </div>
+        <div id="last-pointage" style="font-size:.82rem;color:var(--text-m)"></div>
+      </div>
+
+      <!-- Boutons pointage -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <button class="btn btn-secondary pointage-btn" onclick="doPointage('ARRIVEE')" id="btn-arrivee">
+          🟢 Arrivée
+        </button>
+        <button class="btn btn-danger pointage-btn" onclick="doPointage('DEPART')" id="btn-depart">
+          🔴 Départ
+        </button>
+      </div>
+
+      <!-- Saisie manuelle -->
+      <details class="card" style="margin-bottom:16px">
+        <summary style="cursor:pointer;font-weight:600;padding:4px 0">⌛ Saisie manuelle d'un oubli</summary>
+        <div style="margin-top:16px">
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Type</label>
+              <select class="form-control" id="man-type">
+                <option value="ARRIVEE">Arrivée</option>
+                <option value="DEPART">Départ</option>
+              </select></div>
+            <div class="form-group"><label class="form-label">Date</label>
+              <input class="form-control" id="man-date" type="date"></div>
+            <div class="form-group"><label class="form-label">Heure</label>
+              <input class="form-control" id="man-time" type="time"></div>
+          </div>
+          <button class="btn btn-primary" onclick="saveManuel()">Enregistrer</button>
+        </div>
+      </details>
+
+      <!-- Pointages du jour -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">Pointages aujourd'hui</div>
+        <div id="today-pointages"></div>
+      </div>
+    </section>
+
+    <!-- SEMAINE -->
+    <section id="section-semaine" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Récapitulatif hebdomadaire</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="form-control" id="week-select" type="week" style="width:auto">
+          <button class="btn btn-primary" onclick="loadWeek()">Voir</button>
+          <button class="btn btn-secondary admin-only" onclick="exportCSV()">⬇ CSV</button>
+        </div>
+      </div>
+      <div id="week-summary"></div>
+    </section>
+
+    <!-- EMPLOYÉS -->
+    <section id="section-employes" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Employés</h2>
+        <button class="btn btn-primary admin-only" onclick="openEmpModal()">+ Employé</button>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Prénom</th><th>Nom</th><th>Heures contrat</th><th>Actions</th></tr></thead>
+        <tbody id="employees-body"></tbody></table>
+      </div>
+    </section>
+
+  </main>
+</div>
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/apps/pointage.js"></script>
+</body>
+</html>

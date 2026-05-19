@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facturation & Devis — Portail</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="layout">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <a href="/dashboard" class="btn-back">← <span>Portail</span></a>
+    <div class="topbar-app-name">🧾 Facturation & Devis</div>
+    <div class="topbar-user">
+      <span id="user-name" style="color:var(--text-m);font-size:.85rem"></span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section-title">Navigation</div>
+    <button class="nav-item" data-section="dashboard"><span class="nav-icon">📊</span> Tableau de bord</button>
+    <button class="nav-item" data-section="clients"><span class="nav-icon">👥</span> Clients</button>
+    <button class="nav-item" data-section="devis"><span class="nav-icon">📄</span> Devis</button>
+    <button class="nav-item admin-only" data-section="parametres"><span class="nav-icon">⚙️</span> Paramètres</button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="section-dashboard" class="section">
+      <div class="page-header">
+        <div><h2 class="page-title">Tableau de bord</h2></div>
+        <button class="btn btn-primary" onclick="navTo('devis');openDevisModal()">+ Nouveau devis</button>
+      </div>
+      <div class="stats-grid" id="stats-cards"></div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">Derniers devis</div>
+        <div id="recent-devis"></div>
+      </div>
+    </section>
+
+    <!-- CLIENTS -->
+    <section id="section-clients" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Clients</h2>
+        <button class="btn btn-primary admin-only" onclick="openClientModal()">+ Nouveau client</button>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nom</th><th>Entreprise</th><th>Email</th><th>Téléphone</th><th>Actions</th></tr></thead>
+        <tbody id="clients-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- DEVIS -->
+    <section id="section-devis" class="section">
+      <div class="page-header">
+        <h2 class="page-title">Devis</h2>
+        <button class="btn btn-primary" onclick="openDevisModal()">+ Nouveau devis</button>
+      </div>
+      <div class="search-bar mb-2">
+        <select class="form-control" id="filter-statut" style="width:auto" onchange="loadDevis()">
+          <option value="">Tous les statuts</option>
+          <option value="brouillon">Brouillon</option>
+          <option value="envoyé">Envoyé</option>
+          <option value="accepté">Accepté</option>
+          <option value="refusé">Refusé</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>N°</th><th>Client</th><th>Date</th><th>Statut</th><th>Total TTC</th><th>Actions</th></tr></thead>
+        <tbody id="devis-body"></tbody></table>
+      </div>
+    </section>
+
+    <!-- PARAMÈTRES -->
+    <section id="section-parametres" class="section">
+      <div class="page-header"><h2 class="page-title">Mon Entreprise</h2></div>
+      <div class="card" style="max-width:600px">
+        <form id="param-form">
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Nom de l'entreprise</label><input class="form-control" name="nom" placeholder="Mon Entreprise SARL"></div>
+            <div class="form-group"><label class="form-label">SIRET</label><input class="form-control" name="siret" placeholder="XXX XXX XXX XXXXX"></div>
+            <div class="form-group"><label class="form-label">N° TVA intracommunautaire</label><input class="form-control" name="tva_number" placeholder="FRXX XXXXXXXXX"></div>
+            <div class="form-group"><label class="form-label">Téléphone</label><input class="form-control" name="telephone"></div>
+            <div class="form-group"><label class="form-label">Email</label><input class="form-control" name="email" type="email"></div>
+            <div class="form-group"><label class="form-label">Adresse</label><input class="form-control" name="adresse"></div>
+            <div class="form-group"><label class="form-label">Code postal</label><input class="form-control" name="code_postal"></div>
+            <div class="form-group"><label class="form-label">Ville</label><input class="form-control" name="ville"></div>
+          </div>
+          <div class="form-group"><label class="form-label">RIB / IBAN</label><input class="form-control" name="rib"></div>
+          <div class="form-group"><label class="form-label">Conditions de paiement</label><input class="form-control" name="conditions_paiement" placeholder="30 jours"></div>
+          <button type="submit" class="btn btn-primary mt-2">Enregistrer</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+</div>
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/apps/facturation.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion — Portail Unifié</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">🚀</div>
+      <h1 class="login-title">Portail Unifié</h1>
+      <p class="login-sub">Connectez-vous pour accéder à vos applications</p>
+
+      <div id="error-box" style="display:none;background:rgba(229,62,62,.15);border:1px solid var(--danger);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;color:#fc8181;font-size:.85rem;text-align:left"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label">Adresse email</label>
+          <input type="email" id="email" class="form-control" placeholder="votre@email.fr" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mot de passe</label>
+          <input type="password" id="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary w-full btn-lg" id="submit-btn" style="margin-top:8px">
+          Se connecter
+        </button>
+      </form>
+
+      <p style="margin-top:24px;font-size:.75rem;color:var(--text-d)">
+        Portail v1.0 — Tous droits réservés
+      </p>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    // Redirect si déjà connecté
+    api.get('/api/auth/me').then(user => {
+      if (user && !user.error) {
+        window.location.href = user.role === 'superadmin' ? '/admin' : '/dashboard';
+      }
+    });
+
+    // Paramètre error dans l'URL
+    const urlErr = new URLSearchParams(location.search).get('error');
+    if (urlErr) {
+      document.getElementById('error-box').textContent = decodeURIComponent(urlErr);
+      document.getElementById('error-box').style.display = 'block';
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      const errBox = document.getElementById('error-box');
+      errBox.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Connexion…';
+
+      const res = await api.post('/api/auth/login', {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      });
+
+      if (res && res.success) {
+        window.location.href = res.redirect;
+      } else {
+        errBox.textContent = res?.error || 'Erreur de connexion';
+        errBox.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Se connecter';
+      }
+    });
+  </script>
+</body>
+</html>

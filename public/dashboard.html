@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Portail</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div style="min-height:100vh;display:flex;flex-direction:column">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="logo-dot"></div>
+        <span>Portail Unifié</span>
+      </div>
+      <div class="topbar-user">
+        <span id="user-name" style="color:var(--text-m);font-size:.9rem"></span>
+        <span id="role-badge" class="badge" style="margin:0 8px"></span>
+        <button id="btn-manage-users" class="btn btn-sm" style="display:none;margin-right:8px;background:var(--secondary);color:#fff" onclick="openUsersModal()">👥 Mes utilisateurs</button>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main style="flex:1;padding:32px 28px;max-width:1000px;margin:0 auto;width:100%">
+      <div id="error-banner" style="display:none;background:rgba(229,62,62,.12);border:1px solid var(--danger);border-radius:var(--radius);padding:12px 16px;margin-bottom:20px;color:#fc8181;font-size:.88rem"></div>
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Bonjour, <span id="welcome-name">…</span> 👋</h1>
+          <p class="page-subtitle" id="page-subtitle">Choisissez une application pour commencer</p>
+        </div>
+      </div>
+
+      <div id="tiles-container" class="tiles-grid">
+        <div style="color:var(--text-d);padding:40px;text-align:center;grid-column:1/-1">
+          <span class="spinner"></span>
+        </div>
+      </div>
+
+      <div id="no-apps" style="display:none;text-align:center;padding:60px 20px;color:var(--text-d)">
+        <div style="font-size:3rem;margin-bottom:16px">🔒</div>
+        <h3 style="color:var(--text-m);margin-bottom:8px">Aucune application activée</h3>
+        <p style="font-size:.85rem">Contactez votre administrateur pour activer vos applications.</p>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/main.js"></script>
+  <script>
+    const APP_META = {
+      facturation: { name: 'Facturation & Devis', icon: '🧾', desc: 'Créez et gérez vos devis clients', url: '/app/facturation' },
+      stock:       { name: 'Gestion Stock',        icon: '📦', desc: 'Produits, commandes et livraisons', url: '/app/stock' },
+      recettes:    { name: 'Livre des Recettes',   icon: '📒', desc: 'Comptabilité de votre association', url: '/app/recettes' },
+      pointage:    { name: 'Pointage',             icon: '✅', desc: 'Suivi du temps de travail', url: '/app/pointage' },
+      flottepei:   { name: 'FlottePéi',           icon: '🚗', desc: 'Gestion de flotte professionnelle — Réunion 974', url: '/app/flottepei' }
+    };
+
+    let currentUser = null;
+
+    async function init() {
+      const user = await checkAuth();
+      if (!user) return;
+      currentUser = user;
+
+      displayUser(user);
+      document.getElementById('welcome-name').textContent = user.name.split(' ')[0];
+
+      // Role badge
+      const badge = document.getElementById('role-badge');
+      if (user.role === 'admin') {
+        badge.className = 'badge badge-primary';
+        badge.textContent = '👑 Administrateur';
+        document.getElementById('btn-manage-users').style.display = 'inline-flex';
+        document.getElementById('page-subtitle').textContent = 'Choisissez une application — vous avez les droits administrateur';
+      } else {
+        badge.className = 'badge badge-neutral';
+        badge.textContent = '👤 Utilisateur';
+      }
+
+      const errParam = new URLSearchParams(location.search).get('error');
+      if (errParam) {
+        const banner = document.getElementById('error-banner');
+        banner.textContent = decodeURIComponent(errParam);
+        banner.style.display = 'block';
+      }
+
+      const apps = await api.get('/api/dashboard/apps');
+      const activeApps = apps?.filter(a => a.active) || [];
+      const container = document.getElementById('tiles-container');
+
+      if (activeApps.length === 0) {
+        container.innerHTML = '';
+        document.getElementById('no-apps').style.display = 'block';
+        return;
+      }
+
+      container.innerHTML = activeApps.map(a => {
+        const meta = APP_META[a.app_slug];
+        if (!meta) return '';
+        return `
+          <a href="${meta.url}" class="app-tile">
+            <div class="app-tile-icon">${meta.icon}</div>
+            <div class="app-tile-name">${meta.name}</div>
+            <div class="app-tile-desc">${meta.desc}</div>
+          </a>
+        `;
+      }).join('');
+    }
+
+    // ── GESTION DES UTILISATEURS (admin société) ──────────────────────────────
+    let editingUserId = null;
+
+    async function openUsersModal() {
+      Modal.open({
+        title: '👥 Gestion des utilisateurs',
+        large: true,
+        body: `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <p style="color:var(--text-m);font-size:.88rem;margin:0">Gérez les comptes de votre société.</p>
+            <button class="btn btn-sm btn-primary" onclick="openUserForm()">+ Ajouter</button>
+          </div>
+          <div id="users-list-body">
+            <div style="text-align:center;padding:24px;color:var(--text-d)"><span class="spinner"></span></div>
+          </div>
+        `,
+        footer: `<button class="btn btn-ghost" onclick="Modal.close()">Fermer</button>`
+      });
+      await loadUsers();
+    }
+
+    async function loadUsers() {
+      const users = await api.get('/api/company/users');
+      const body = document.getElementById('users-list-body');
+      if (!body) return;
+      if (!users || users.length === 0) {
+        body.innerHTML = '<p style="text-align:center;color:var(--text-d);padding:24px">Aucun utilisateur pour le moment.</p>';
+        return;
+      }
+      body.innerHTML = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Email</th>
+              <th>Rôle</th>
+              <th>Statut</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(u => `
+              <tr>
+                <td><strong>${u.name}</strong></td>
+                <td style="color:var(--text-m)">${u.email}</td>
+                <td>${u.role === 'admin'
+                  ? '<span class="badge badge-primary">👑 Administrateur</span>'
+                  : '<span class="badge badge-neutral">👤 Utilisateur</span>'}</td>
+                <td>${u.active
+                  ? '<span class="badge badge-success">Actif</span>'
+                  : '<span class="badge badge-danger">Inactif</span>'}</td>
+                <td style="text-align:right">
+                  <button class="btn btn-ghost btn-sm" onclick="openUserForm(${JSON.stringify(u).replace(/"/g,'&quot;')})">✏️</button>
+                  <button class="btn btn-ghost btn-sm" style="color:var(--danger)" onclick="deleteUser(${u.id},'${u.name.replace(/'/g,'\\x27')}')">🗑</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function openUserForm(user = null) {
+      editingUserId = user?.id || null;
+      const isEdit = !!user;
+      Modal.open({
+        title: isEdit ? '✏️ Modifier l\'utilisateur' : '➕ Nouvel utilisateur',
+        body: `
+          <div class="form-group">
+            <label class="form-label">Nom complet *</label>
+            <input class="form-input" id="uf-name" value="${user?.name || ''}" placeholder="Prénom Nom">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input class="form-input" id="uf-email" type="email" value="${user?.email || ''}" placeholder="email@exemple.fr">
+          </div>
+          <div class="form-group">
+            <label class="form-label">${isEdit ? 'Nouveau mot de passe (laisser vide pour ne pas changer)' : 'Mot de passe *'}</label>
+            <input class="form-input" id="uf-password" type="password" placeholder="${isEdit ? 'Nouveau mot de passe…' : 'Min. 6 caractères'}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rôle</label>
+            <select class="form-select" id="uf-role">
+              <option value="user" ${(!user || user.role==='user') ? 'selected' : ''}>👤 Utilisateur</option>
+              <option value="admin" ${user?.role==='admin' ? 'selected' : ''}>👑 Administrateur</option>
+            </select>
+          </div>
+          ${isEdit ? `
+          <div class="form-group" style="display:flex;align-items:center;gap:10px">
+            <label class="switch"><input type="checkbox" id="uf-active" ${user?.active ? 'checked' : ''}><span class="slider"></span></label>
+            <span class="form-label" style="margin:0">Compte actif</span>
+          </div>` : ''}
+        `,
+        footer: `
+          <button class="btn btn-ghost" onclick="openUsersModal()">Annuler</button>
+          <button class="btn btn-primary" onclick="saveUser(${isEdit})">
+            ${isEdit ? 'Enregistrer' : 'Créer'}
+          </button>
+        `
+      });
+    }
+
+    async function saveUser(isEdit) {
+      const name     = document.getElementById('uf-name')?.value.trim();
+      const email    = document.getElementById('uf-email')?.value.trim();
+      const password = document.getElementById('uf-password')?.value;
+      const role     = document.getElementById('uf-role')?.value;
+      const active   = document.getElementById('uf-active');
+
+      if (!name || !email) return toast('Nom et email requis', 'error');
+      if (!isEdit && !password) return toast('Mot de passe requis', 'error');
+
+      // Désactiver le bouton pendant la requête
+      const btn = document.querySelector('.modal-footer .btn-primary');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Enregistrement…'; }
+
+      const body = { name, email, role };
+      if (password) body.password = password;
+      if (isEdit && active !== null) body.active = active?.checked;
+
+      let ok;
+      if (isEdit) {
+        ok = await api.put(`/api/company/users/${editingUserId}`, body);
+      } else {
+        ok = await api.post('/api/company/users', body);
+      }
+
+      if (btn) { btn.disabled = false; btn.textContent = isEdit ? 'Enregistrer' : 'Créer'; }
+
+      if (!ok || ok.error) return toast(ok?.error || 'Erreur', 'error');
+      toast(isEdit ? 'Utilisateur modifié ✅' : 'Utilisateur créé ✅', 'success');
+      openUsersModal();
+    }
+
+    function deleteUser(id, name) {
+      confirm(`Supprimer l'utilisateur "${name}" ?`, async () => {
+        const ok = await api.del(`/api/company/users/${id}`);
+        if (!ok || ok.error) return toast(ok?.error || 'Erreur', 'error');
+        toast('Utilisateur supprimé', 'success');
+        openUsersModal();
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

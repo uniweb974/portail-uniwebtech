@@ -1,0 +1,8 @@
+node_modules/
+data/
+.env
+public/uploads/products/*.jpg
+public/uploads/products/*.png
+public/uploads/products/*.webp
+*.db
+*.log
