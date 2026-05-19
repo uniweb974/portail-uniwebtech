@@ -57,16 +57,19 @@ router.delete('/categories/:id', ...guardAdmin, (req, res) => {
 
 router.get('/produits', ...guard, (req, res) => {
   const db = getDB();
+  const tid = req.user.tenant_id;
   const { search, categorie, alertes } = req.query;
   let sql = `SELECT p.*, c.nom as categorie_nom, c.couleur as categorie_couleur
              FROM produits p LEFT JOIN categories c ON c.id=p.categorie_id
              WHERE p.user_id=? AND p.archive=0`;
-  const p = [req.user.tenant_id];
+  const p = [tid];
   if (search)   { sql += ' AND p.nom LIKE ?'; p.push(`%${search}%`); }
   if (categorie){ sql += ' AND p.categorie_id=?'; p.push(categorie); }
   if (alertes==='1') sql += ' AND p.stock_actuel<=p.stock_minimum';
   sql += ' ORDER BY p.nom';
-  res.json(db.prepare(sql).all(...p));
+  const rows = db.prepare(sql).all(...p);
+  console.log(`[GET /produits] tenant_id=${tid} alertes=${alertes||'0'} → ${rows.length} produit(s)`);
+  res.json(rows);
 });
 
 router.post('/produits', ...guardAdmin, upload.single('photo'), (req, res) => {
@@ -183,9 +186,17 @@ router.get('/livraisons', ...guard, (req, res) => {
 });
 
 router.post('/livraisons', ...guardAdmin, (req, res) => {
-  const { commande_id, livreur_nom, adresse_livraison, date_prevue } = req.body;
-  const r = getDB().prepare('INSERT INTO livraisons (user_id, commande_id, livreur_nom, adresse_livraison, date_prevue) VALUES (?,?,?,?,?)').run(req.user.tenant_id, commande_id, livreur_nom||null, adresse_livraison||null, date_prevue||null);
-  res.json({ success: true, id: r.lastInsertRowid });
+  try {
+    const { commande_id, livreur_nom, adresse_livraison, date_prevue, statut } = req.body;
+    if (!commande_id) return res.status(400).json({ error: 'commande_id requis' });
+    const r = getDB().prepare(
+      'INSERT INTO livraisons (user_id, commande_id, livreur_nom, adresse_livraison, date_prevue, statut) VALUES (?,?,?,?,?,?)'
+    ).run(req.user.tenant_id, commande_id, livreur_nom||null, adresse_livraison||null, date_prevue||null, statut||'preparee');
+    res.json({ success: true, id: r.lastInsertRowid });
+  } catch (e) {
+    console.error('[POST /livraisons]', e.message);
+    res.status(500).json({ error: e.message || 'Erreur serveur interne' });
+  }
 });
 
 router.put('/livraisons/:id', ...guardAdmin, (req, res) => {

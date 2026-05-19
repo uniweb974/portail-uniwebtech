@@ -94,7 +94,10 @@
 
     <!-- LIVRAISONS -->
     <section id="section-livraisons" class="section">
-      <div class="page-header"><h2 class="page-title">Livraisons</h2></div>
+      <div class="page-header">
+        <h2 class="page-title">Livraisons</h2>
+        <button class="btn btn-primary admin-only" onclick="openCreateLivraisonModal()">+ Nouvelle livraison</button>
+      </div>
       <div class="table-wrap">
         <table><thead><tr><th>Commande</th><th>Client</th><th>Livreur</th><th>Statut</th><th>Date prévue</th><th>Actions</th></tr></thead>
         <tbody id="livraisons-body"></tbody></table>

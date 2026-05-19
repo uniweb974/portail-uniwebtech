@@ -11,7 +11,7 @@ async function init() {
   displayUser(user);
   initNav('dashboard');
   await Promise.all([loadDashboard(), loadCategories(), loadStockClients()]);
-  document.querySelector('[data-section="produits"]').addEventListener('click', loadProduits);
+  document.querySelector('[data-section="produits"]').addEventListener('click', () => loadProduits());
   document.querySelector('[data-section="commandes"]').addEventListener('click', loadCommandes);
   document.querySelector('[data-section="livraisons"]').addEventListener('click', loadLivraisons);
   document.querySelector('[data-section="categories"]').addEventListener('click', loadCategories);
@@ -302,7 +302,6 @@ function openCommandeModal() {
 
 function _openCommandeForm() {
   const clientOpts = stockClients.map(c => `<option value="${c.id}">${c.nom}</option>`).join('');
-  const prodOpts = produits.map(p => `<option value="${p.id}" data-prix="${p.prix_ht}" data-tva="${p.tva}">${p.nom} (${p.sku || '—'}) — stock: ${p.stock_actuel}</option>`).join('');
 
   Modal.open({
     title: '➕ Nouvelle commande', large: true,
@@ -321,7 +320,7 @@ function _openCommandeForm() {
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <strong style="font-size:.85rem">Lignes de commande</strong>
-        <button class="btn btn-ghost btn-sm" onclick="addCmdLigne('${prodOpts.replace(/'/g,"\\'")}')">+ Produit</button>
+        <button class="btn btn-ghost btn-sm" onclick="addCmdLigne()">+ Produit</button>
       </div>
       <div id="cmd-lignes"></div>
       <div style="text-align:right;margin-top:8px;font-size:.9rem">
@@ -330,10 +329,15 @@ function _openCommandeForm() {
     footer: `<button class="btn btn-ghost" onclick="Modal.close()">Annuler</button>
              <button class="btn btn-primary" onclick="saveCommande()">Créer</button>`
   });
-  addCmdLigne(prodOpts);
+  addCmdLigne();
 }
 
-function addCmdLigne(prodOpts) {
+// BUG 2 FIX : addCmdLigne utilise le tableau global `produits` au lieu de recevoir
+// du HTML en paramètre (les balises <option> dans un onclick="" cassaient l'attribut)
+function addCmdLigne() {
+  const prodOpts = produits.map(p =>
+    `<option value="${p.id}" data-prix="${p.prix_ht}" data-tva="${p.tva}">${p.nom}${p.sku ? ' (' + p.sku + ')' : ''} — Stock: ${p.stock_actuel}</option>`
+  ).join('');
   const container = document.getElementById('cmd-lignes');
   const div = document.createElement('div');
   div.style.cssText = 'display:grid;grid-template-columns:1fr 80px 100px 80px auto;gap:8px;margin-bottom:8px;align-items:end';
@@ -490,6 +494,102 @@ async function saveLivraison(id) {
   });
   if (res?.success) { Modal.close(); toast('Livraison mise à jour', 'success'); await loadLivraisons(); }
   else toast(res?.error || 'Erreur', 'error');
+}
+
+// ── CRÉER LIVRAISON ───────────────────────────────────────────────────────────
+
+async function openCreateLivraisonModal() {
+  // Charger les commandes si pas encore fait
+  if (!commandes.length) await loadCommandes();
+
+  if (!commandes.length) {
+    toast('Aucune commande disponible — créez d\'abord une commande', 'error');
+    return;
+  }
+
+  const cmdOpts = commandes.map(c =>
+    `<option value="${c.id}">${c.numero}${c.client_nom ? ' — ' + c.client_nom : ''}</option>`
+  ).join('');
+  const today = new Date().toISOString().split('T')[0];
+
+  Modal.open({
+    title: '➕ Nouvelle livraison',
+    body: `
+      <div class="form-group">
+        <label class="form-label">Commande *</label>
+        <select class="form-control" id="nlv-cmd">
+          <option value="">Sélectionner une commande…</option>
+          ${cmdOpts}
+        </select>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Livreur</label>
+          <input class="form-control" id="nlv-livreur" placeholder="Nom du livreur">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date prévue</label>
+          <input class="form-control" id="nlv-date" type="date" value="${today}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <select class="form-control" id="nlv-statut">
+          <option value="preparee">Préparée</option>
+          <option value="en_route">En route</option>
+          <option value="livree">Livrée</option>
+          <option value="echec">Échec</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adresse de livraison</label>
+        <input class="form-control" id="nlv-adresse" placeholder="Adresse complète…">
+      </div>
+      <div id="nlv-err" style="display:none;color:var(--danger);font-size:.83rem;margin-top:8px"></div>`,
+    footer: `<button class="btn btn-ghost" onclick="Modal.close()">Annuler</button>
+             <button class="btn btn-primary" onclick="saveNewLivraison()">Créer</button>`
+  });
+}
+
+async function saveNewLivraison() {
+  const commande_id = document.getElementById('nlv-cmd').value;
+  const err = document.getElementById('nlv-err');
+  err.style.display = 'none';
+
+  if (!commande_id) {
+    err.textContent = 'Veuillez sélectionner une commande';
+    err.style.display = 'block';
+    return;
+  }
+
+  const btn = document.querySelector('.modal-footer .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Création…'; }
+  Modal._locked = true;
+
+  try {
+    const res = await api.post(`${BASE}/livraisons`, {
+      commande_id: parseInt(commande_id),
+      livreur_nom:       document.getElementById('nlv-livreur').value.trim() || null,
+      date_prevue:       document.getElementById('nlv-date').value || null,
+      statut:            document.getElementById('nlv-statut').value,
+      adresse_livraison: document.getElementById('nlv-adresse').value.trim() || null
+    });
+    Modal._locked = false;
+    if (res?.success) {
+      Modal.close();
+      toast('✅ Livraison créée', 'success');
+      await loadLivraisons();
+    } else {
+      err.textContent = res?.error || 'Erreur serveur';
+      err.style.display = 'block';
+      if (btn) { btn.disabled = false; btn.textContent = 'Créer'; }
+    }
+  } catch (e) {
+    Modal._locked = false;
+    err.textContent = 'Erreur réseau';
+    err.style.display = 'block';
+    if (btn) { btn.disabled = false; btn.textContent = 'Créer'; }
+  }
 }
 
 init();
