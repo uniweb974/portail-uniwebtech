@@ -469,4 +469,10 @@ function _seedSuperAdmin (db) {
   companies.forEach(c => ALL_APPS.forEach(slug => ins.run(c.id, slug)));
 }
 
-module.exports = { getDB, initDB };
+/** Force la persistance sur disque (utile après des écritures multiples) */
+function persistDB () {
+  if (!_db) return;
+  _db._persist();
+}
+
+module.exports = { getDB, initDB, persistDB };
