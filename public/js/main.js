@@ -19,6 +19,7 @@ function toast(msg, type = 'info', duration = 3500) {
 const Modal = {
   _overlay: null,
   _modal: null,
+  _locked: false,   // true pendant une requête → empêche fermeture par clic overlay
 
   _ensure() {
     if (!this._overlay) {
@@ -28,7 +29,7 @@ const Modal = {
       this._modal.className = 'modal';
       this._overlay.appendChild(this._modal);
       document.body.appendChild(this._overlay);
-      this._overlay.addEventListener('click', e => { if (e.target === this._overlay) this.close(); });
+      this._overlay.addEventListener('click', e => { if (e.target === this._overlay && !this._locked) this.close(); });
     }
   },
 

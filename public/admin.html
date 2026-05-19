@@ -203,11 +203,35 @@
       const password = document.getElementById('c-password').value;
       const plan = document.getElementById('c-plan').value;
       const err = document.getElementById('c-err');
+      err.style.display = 'none';
       if (!name || !email || !password) { err.textContent = 'Tous les champs * sont requis'; err.style.display = 'block'; return; }
       if (password.length < 6) { err.textContent = 'Mot de passe trop court'; err.style.display = 'block'; return; }
-      const res = await api.post('/api/admin/clients', { name, email, password, plan });
-      if (res?.success) { Modal.close(); toast('Société créée', 'success'); await loadClients(); await loadStats(); }
-      else { err.textContent = res?.error || 'Erreur'; err.style.display = 'block'; }
+
+      // Désactiver le bouton + verrouiller la modal pendant la requête
+      const btn = document.querySelector('.modal-footer .btn-primary');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Création…'; }
+      Modal._locked = true;
+
+      try {
+        const res = await api.post('/api/admin/clients', { name, email, password, plan });
+        if (res?.success) {
+          Modal._locked = false;
+          Modal.close();
+          toast('✅ Société créée avec succès', 'success');
+          await loadClients();
+          await loadStats();
+        } else {
+          err.textContent = res?.error || 'Erreur serveur — réessayez';
+          err.style.display = 'block';
+          if (btn) { btn.disabled = false; btn.textContent = 'Créer'; }
+          Modal._locked = false;
+        }
+      } catch (e) {
+        err.textContent = 'Erreur réseau — vérifiez votre connexion';
+        err.style.display = 'block';
+        if (btn) { btn.disabled = false; btn.textContent = 'Créer'; }
+        Modal._locked = false;
+      }
     }
 
     // ── MODIFIER SOCIÉTÉ ────────────────────────────────────────────────────
