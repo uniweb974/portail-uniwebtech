@@ -34,7 +34,10 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden; /* bloque le scroll horizontal au niveau du document */
+}
 
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -43,6 +46,8 @@ body {
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; /* sécurité supplémentaire */
+  max-width: 100vw;
 }
 
 a { color: var(--accent); text-decoration: none; }
@@ -104,6 +109,10 @@ img { max-width: 100%; }
   flex: 1;
   font-size: .95rem;
   color: var(--text-m);
+  min-width: 0;          /* permet la troncature si trop long */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar-user {
@@ -189,7 +198,9 @@ img { max-width: 100%; }
   grid-column: 2;
   grid-row: 2;
   overflow-y: auto;
+  overflow-x: hidden; /* empêche le débordement horizontal */
   padding: 28px;
+  min-width: 0;       /* permet à la cellule grille de rétrécir */
 }
 
 .section { display: none; }
@@ -745,8 +756,9 @@ tbody td {
 
   /* ── LAYOUT : topbar / contenu / barre de nav ─────────── */
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr); /* min:0 = la piste peut rétrécir */
     grid-template-rows: var(--topbar) 1fr var(--bottombar);
+    overflow-x: hidden;
   }
 
   /* Masquer le hamburger (on utilise la barre du bas) */
@@ -810,15 +822,22 @@ tbody td {
   .main {
     grid-column: 1;
     grid-row: 2;
-    padding: 14px;
+    padding: 12px;
     margin-bottom: var(--bottombar);
     overflow-y: auto;
+    overflow-x: hidden; /* bloque tout débordement à droite */
+    max-width: 100vw;
   }
 
-  /* ── TOPBAR : simplifié ───────────────────────────────── */
-  #user-name          { display: none; }   /* cache le prénom */
-  .topbar-brand       { min-width: auto; }
-  .btn-back span      { display: none; }   /* garde juste ← */
+  /* ── TOPBAR : compact ────────────────────────────────── */
+  .topbar              { padding: 0 10px; gap: 8px; }
+  #user-name           { display: none; }        /* cache le prénom */
+  .topbar-brand        { min-width: auto; }
+  .btn-back            { padding: 5px 8px; font-size: .8rem; }
+  .btn-back span       { display: none; }        /* garde juste ← */
+  .topbar-user         { flex-shrink: 0; gap: 6px; }
+  /* Bouton Déconnexion : plus compact sur mobile */
+  .topbar-user .btn    { padding: 5px 8px; font-size: .72rem; min-height: 32px; }
 
   /* ── PAGE HEADER : empilé sur petit écran ─────────────── */
   .page-header {
