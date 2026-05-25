@@ -71,7 +71,6 @@ function initNav(defaultSection) {
   const items = document.querySelectorAll('.nav-item[data-section]');
   items.forEach(item => {
     item.addEventListener('click', () => {
-      closeSidebar(); // ferme l'overlay sur mobile
       items.forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));

@@ -742,91 +742,102 @@ tbody td {
 .dash-nav-item .dash-nav-icon { font-size: 1.2rem; }
 
 @media (max-width: 768px) {
-  /* Layout: 2 rows only (no bottom bar for app sidebar) */
+
+  /* ── LAYOUT : topbar / contenu / barre de nav ─────────── */
   .layout {
     grid-template-columns: 1fr;
-    grid-template-rows: var(--topbar) 1fr;
+    grid-template-rows: var(--topbar) 1fr var(--bottombar);
   }
 
-  /* Show hamburger button */
-  .hamburger { display: inline-flex; }
+  /* Masquer le hamburger (on utilise la barre du bas) */
+  .hamburger       { display: none !important; }
+  .sidebar-backdrop { display: none !important; }
+  .sidebar-close-btn { display: none !important; }
 
-  /* Sidebar: hidden left-side overlay panel */
+  /* ── SIDEBAR → BARRE DE NAVIGATION BASSE ─────────────── */
   .sidebar {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: -260px;
-    bottom: 0;
-    width: 240px;
-    height: 100%;
-    z-index: 200;
-    padding: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    border-right: 1px solid var(--border);
-    border-top: none;
-    transition: left .28s ease;
-    background: var(--bg2);
-  }
-
-  .sidebar.open { left: 0; }
-
-  /* Show close button inside sidebar */
-  .sidebar-close-btn { display: block; }
-
-  /* Show section titles in sidebar overlay */
-  .nav-section-title { display: block; }
-
-  /* Nav items: normal row layout inside overlay */
-  .nav-item {
+    grid-column: 1;
+    grid-row: 3;
+    display: flex;
     flex-direction: row;
-    gap: 10px;
-    padding: 12px 20px;
-    font-size: .9rem;
-    min-width: auto;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    top: auto;
     width: 100%;
-    flex: none;
-    justify-content: flex-start;
-    border-radius: 0;
+    height: var(--bottombar);
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    z-index: 90;
+    background: var(--bg2);
+    transition: none;
+    /* reset overlay styles */
+    transform: none;
   }
 
-  .nav-item.active::before { display: block; }
-  .nav-item.active { background: rgba(93,40,143,.3); }
+  .nav-section-title { display: none; }
 
-  .nav-icon { width: 20px; font-size: 1rem; }
+  /* Icône seule — libère de la place pour 5-6 onglets */
+  .nav-item {
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    font-size: 0;          /* cache le label texte */
+    flex: 1;
+    min-width: 44px;
+    height: var(--bottombar);
+    justify-content: center;
+    align-items: center;
+    border-radius: 0;
+    border-top: 2px solid transparent;
+    color: var(--text-d);
+  }
 
+  .nav-item:hover { background: rgba(93,40,143,.12); color: var(--text-m); }
+
+  .nav-item.active {
+    border-top-color: var(--accent);
+    color: var(--accent);
+    background: rgba(11,187,187,.06);
+  }
+  .nav-item.active::before { display: none; }
+
+  .nav-icon { width: auto; font-size: 1.4rem; }
+
+  /* ── CONTENU PRINCIPAL ────────────────────────────────── */
   .main {
     grid-column: 1;
     grid-row: 2;
-    padding: 16px;
-    margin-bottom: 0;
+    padding: 14px;
+    margin-bottom: var(--bottombar);
+    overflow-y: auto;
   }
 
-  /* Dashboard bottom nav */
-  .dash-bottomnav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: var(--bottombar);
-    background: var(--bg2);
-    border-top: 1px solid var(--border);
-    z-index: 90;
-    align-items: stretch;
+  /* ── TOPBAR : simplifié ───────────────────────────────── */
+  #user-name          { display: none; }   /* cache le prénom */
+  .topbar-brand       { min-width: auto; }
+  .btn-back span      { display: none; }   /* garde juste ← */
+
+  /* ── PAGE HEADER : empilé sur petit écran ─────────────── */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
   }
 
+  /* ── TUILES DASHBOARD ─────────────────────────────────── */
   .tiles-grid { grid-template-columns: repeat(2, 1fr); }
 
+  /* ── FORMULAIRES : 1 colonne ──────────────────────────── */
   .form-grid { grid-template-columns: 1fr; }
 
-  .btn-back span { display: none; }
-
-  .topbar-brand { min-width: auto; }
-
+  /* ── STATS : 2 colonnes ───────────────────────────────── */
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
 
+  /* ── TABLEAUX ─────────────────────────────────────────── */
   .table-wrap { font-size: .8rem; }
 
   .ligne-row {
@@ -834,21 +845,34 @@ tbody td {
     gap: 4px;
   }
 
-  /* Toast above dashboard bottom nav */
+  /* ── TOAST au-dessus de la barre ──────────────────────── */
   #toast-container { bottom: 72px; right: 16px; }
 
-  /* Modal: bottom sheet */
-  .modal { max-width: 100%; margin: 0; border-radius: var(--radius-l) var(--radius-l) 0 0; }
+  /* ── MODAL : bottom-sheet ─────────────────────────────── */
+  .modal         { max-width: 100%; margin: 0; border-radius: var(--radius-l) var(--radius-l) 0 0; }
   .modal-overlay { align-items: flex-end; padding: 0; }
 
+  /* ── LOGIN ────────────────────────────────────────────── */
   .login-card { padding: 32px 24px; }
 
-  /* Touch targets — min 44px height */
-  .btn { min-height: 44px; }
+  /* ── CIBLES TACTILES 44 px ────────────────────────────── */
+  .btn    { min-height: 44px; }
   .btn-sm { min-height: 36px; }
 
-  /* Prevent iOS auto-zoom on input focus (needs ≥16px) */
+  /* Empêche le zoom auto iOS sur focus input */
   .form-control { font-size: 16px; }
+
+  /* ── DASHBOARD BOTTOM NAV ─────────────────────────────── */
+  .dash-bottomnav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--bottombar);
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    z-index: 90;
+    align-items: stretch;
+  }
 }
 
 /* ── LOADING ─────────────────────────────────────────────── */
