@@ -831,12 +831,14 @@ tbody td {
 
   /* ── TOPBAR : compact ────────────────────────────────── */
   .topbar              { padding: 0 10px; gap: 8px; }
-  #user-name           { display: none; }        /* cache le prénom */
+  #user-name           { display: none; }           /* cache le prénom */
+  #role-badge          { display: none !important; } /* cache le badge rôle */
+  #btn-manage-users    { display: none !important; } /* accessible via bottom nav 👥 */
   .topbar-brand        { min-width: auto; }
   .btn-back            { padding: 5px 8px; font-size: .8rem; }
-  .btn-back span       { display: none; }        /* garde juste ← */
+  .btn-back span       { display: none; }           /* garde juste ← */
   .topbar-user         { flex-shrink: 0; gap: 6px; }
-  /* Bouton Déconnexion : plus compact sur mobile */
+  /* Bouton Déconnexion : compact */
   .topbar-user .btn    { padding: 5px 8px; font-size: .72rem; min-height: 32px; }
 
   /* ── PAGE HEADER : empilé sur petit écran ─────────────── */
