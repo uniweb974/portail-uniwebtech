@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — Portail</title>
+  <title>Dashboard — UniCloud</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
     <header class="topbar">
       <div class="topbar-brand">
         <div class="logo-dot"></div>
-        <span>Portail Unifié</span>
+        <span>UniCloud</span>
       </div>
       <div class="topbar-user">
         <span id="user-name" style="color:var(--text-m);font-size:.9rem"></span>
@@ -23,7 +23,7 @@
     </header>
 
     <!-- MAIN -->
-    <main style="flex:1;padding:32px 28px;max-width:1000px;margin:0 auto;width:100%">
+    <main style="flex:1;padding:32px 28px;max-width:1000px;margin:0 auto;width:100%;padding-bottom:calc(var(--bottombar) + 32px)">
       <div id="error-banner" style="display:none;background:rgba(229,62,62,.12);border:1px solid var(--danger);border-radius:var(--radius);padding:12px 16px;margin-bottom:20px;color:#fc8181;font-size:.88rem"></div>
 
       <div class="page-header">
@@ -49,11 +49,27 @@
 
   <div id="toast-container"></div>
 
+  <!-- BOTTOM NAV — mobile seulement -->
+  <nav class="dash-bottomnav" id="dash-bottomnav">
+    <a href="/dashboard" class="dash-nav-item active">
+      <span class="dash-nav-icon">🏠</span><span>Accueil</span>
+    </a>
+    <button class="dash-nav-item" onclick="document.getElementById('tiles-container').scrollIntoView({behavior:'smooth'})">
+      <span class="dash-nav-icon">📱</span><span>Apps</span>
+    </button>
+    <button class="dash-nav-item" id="dash-nav-equipe" style="display:none" onclick="openUsersModal()">
+      <span class="dash-nav-icon">👥</span><span>Équipe</span>
+    </button>
+    <button class="dash-nav-item" onclick="logout()">
+      <span class="dash-nav-icon">🚪</span><span>Déco.</span>
+    </button>
+  </nav>
+
   <script src="/js/api.js"></script>
   <script src="/js/main.js"></script>
   <script>
     const APP_META = {
-      facturation: { name: 'Facturation & Devis', icon: '🧾', desc: 'Créez et gérez vos devis clients', url: '/app/facturation' },
+      facturation: { name: 'Devis', icon: '🧾', desc: 'Créez et gérez vos devis clients', url: '/app/facturation' },
       stock:       { name: 'Gestion Stock',        icon: '📦', desc: 'Produits, commandes et livraisons', url: '/app/stock' },
       recettes:    { name: 'Livre des Recettes',   icon: '📒', desc: 'Comptabilité de votre association', url: '/app/recettes' },
       pointage:    { name: 'Pointage',             icon: '✅', desc: 'Suivi du temps de travail', url: '/app/pointage' },
@@ -77,6 +93,9 @@
         badge.textContent = '👑 Administrateur';
         document.getElementById('btn-manage-users').style.display = 'inline-flex';
         document.getElementById('page-subtitle').textContent = 'Choisissez une application — vous avez les droits administrateur';
+        // Afficher bouton Équipe dans la bottom nav mobile
+        const equipeBtn = document.getElementById('dash-nav-equipe');
+        if (equipeBtn) equipeBtn.style.display = 'flex';
       } else {
         badge.className = 'badge badge-neutral';
         badge.textContent = '👤 Utilisateur';

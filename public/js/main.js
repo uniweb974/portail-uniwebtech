@@ -71,6 +71,7 @@ function initNav(defaultSection) {
   const items = document.querySelectorAll('.nav-item[data-section]');
   items.forEach(item => {
     item.addEventListener('click', () => {
+      closeSidebar(); // ferme l'overlay sur mobile
       items.forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -83,6 +84,24 @@ function initNav(defaultSection) {
   } else {
     items[0]?.click();
   }
+}
+
+// ── SIDEBAR MOBILE (HAMBURGER) ────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.querySelector('.sidebar-backdrop');
+  if (!sidebar) return;
+  const isOpen = sidebar.classList.toggle('open');
+  if (backdrop) {
+    isOpen ? backdrop.classList.add('active') : backdrop.classList.remove('active');
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.querySelector('.sidebar-backdrop');
+  if (sidebar) sidebar.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('active');
 }
 
 // ── LOGOUT ────────────────────────────────────────────────────────────────────

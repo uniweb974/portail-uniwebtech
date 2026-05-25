@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Facturation & Devis — Portail</title>
+  <title>Devis — UniCloud</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -11,8 +11,9 @@
 
   <!-- TOP BAR -->
   <header class="topbar">
-    <a href="/dashboard" class="btn-back">← <span>Portail</span></a>
-    <div class="topbar-app-name">🧾 Facturation & Devis</div>
+    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+    <a href="/dashboard" class="btn-back">← <span>UniCloud</span></a>
+    <div class="topbar-app-name">🧾 Devis</div>
     <div class="topbar-user">
       <span id="user-name" style="color:var(--text-m);font-size:.85rem"></span>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
@@ -20,13 +21,16 @@
   </header>
 
   <!-- SIDEBAR -->
-  <nav class="sidebar">
+  <nav class="sidebar" id="app-sidebar">
+    <button class="sidebar-close-btn" onclick="closeSidebar()">✕ Fermer</button>
     <div class="nav-section-title">Navigation</div>
     <button class="nav-item" data-section="dashboard"><span class="nav-icon">📊</span> Tableau de bord</button>
     <button class="nav-item" data-section="clients"><span class="nav-icon">👥</span> Clients</button>
     <button class="nav-item" data-section="devis"><span class="nav-icon">📄</span> Devis</button>
     <button class="nav-item admin-only" data-section="parametres"><span class="nav-icon">⚙️</span> Paramètres</button>
   </nav>
+
+  <div class="sidebar-backdrop" onclick="closeSidebar()"></div>
 
   <!-- MAIN -->
   <main class="main">

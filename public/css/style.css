@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   PORTAIL UNIFIÉ — Design System
+   UniCloud — Design System
    Thème : Fond sombre #1a0a2e / Violet #5D288F / Vert #008F68
    ══════════════════════════════════════════════════════════ */
 
@@ -673,54 +673,148 @@ tbody td {
    RESPONSIVE — MOBILE FIRST
    ══════════════════════════════════════════════════════════ */
 
+/* ── HAMBURGER BUTTON ───────────────────────────────────── */
+.hamburger {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  transition: var(--transition);
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.hamburger:hover { background: rgba(255,255,255,.07); }
+
+/* ── SIDEBAR OVERLAY BACKDROP ───────────────────────────── */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 150;
+  backdrop-filter: blur(2px);
+}
+.sidebar-backdrop.active { display: block; }
+
+/* ── SIDEBAR CLOSE BUTTON ───────────────────────────────── */
+.sidebar-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-m);
+  font-size: .85rem;
+  cursor: pointer;
+  padding: 10px 16px 10px;
+  text-align: right;
+  width: 100%;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.sidebar-close-btn:hover { color: var(--text); }
+
+/* ── DASHBOARD BOTTOM NAV ───────────────────────────────── */
+.dash-bottomnav { display: none; }
+
+.dash-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: .65rem;
+  color: var(--text-m);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 4px;
+  transition: var(--transition);
+}
+.dash-nav-item:hover { color: var(--accent); }
+.dash-nav-item .dash-nav-icon { font-size: 1.2rem; }
+
 @media (max-width: 768px) {
+  /* Layout: 2 rows only (no bottom bar for app sidebar) */
   .layout {
     grid-template-columns: 1fr;
-    grid-template-rows: var(--topbar) 1fr var(--bottombar);
+    grid-template-rows: var(--topbar) 1fr;
   }
 
+  /* Show hamburger button */
+  .hamburger { display: inline-flex; }
+
+  /* Sidebar: hidden left-side overlay panel */
   .sidebar {
-    grid-column: 1;
-    grid-row: 3;
-    display: flex;
-    flex-direction: row;
-    padding: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-right: none;
-    border-top: 1px solid var(--border);
-    height: var(--bottombar);
+    display: block;
     position: fixed;
+    top: 0;
+    left: -260px;
     bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 90;
+    width: 240px;
+    height: 100%;
+    z-index: 200;
+    padding: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-right: 1px solid var(--border);
+    border-top: none;
+    transition: left .28s ease;
     background: var(--bg2);
   }
 
-  .nav-section-title { display: none; }
+  .sidebar.open { left: 0; }
 
+  /* Show close button inside sidebar */
+  .sidebar-close-btn { display: block; }
+
+  /* Show section titles in sidebar overlay */
+  .nav-section-title { display: block; }
+
+  /* Nav items: normal row layout inside overlay */
   .nav-item {
-    flex-direction: column;
-    gap: 2px;
-    padding: 8px 12px;
-    font-size: .65rem;
-    min-width: 60px;
-    flex: 1;
-    justify-content: center;
+    flex-direction: row;
+    gap: 10px;
+    padding: 12px 20px;
+    font-size: .9rem;
+    min-width: auto;
+    width: 100%;
+    flex: none;
+    justify-content: flex-start;
     border-radius: 0;
   }
 
-  .nav-item.active::before { display: none; }
+  .nav-item.active::before { display: block; }
   .nav-item.active { background: rgba(93,40,143,.3); }
 
-  .nav-icon { width: auto; font-size: 1.1rem; }
+  .nav-icon { width: 20px; font-size: 1rem; }
 
   .main {
     grid-column: 1;
     grid-row: 2;
     padding: 16px;
-    margin-bottom: var(--bottombar);
+    margin-bottom: 0;
+  }
+
+  /* Dashboard bottom nav */
+  .dash-bottomnav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--bottombar);
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    z-index: 90;
+    align-items: stretch;
   }
 
   .tiles-grid { grid-template-columns: repeat(2, 1fr); }
@@ -740,12 +834,21 @@ tbody td {
     gap: 4px;
   }
 
-  #toast-container { bottom: 70px; }
+  /* Toast above dashboard bottom nav */
+  #toast-container { bottom: 72px; right: 16px; }
 
+  /* Modal: bottom sheet */
   .modal { max-width: 100%; margin: 0; border-radius: var(--radius-l) var(--radius-l) 0 0; }
   .modal-overlay { align-items: flex-end; padding: 0; }
 
   .login-card { padding: 32px 24px; }
+
+  /* Touch targets — min 44px height */
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 36px; }
+
+  /* Prevent iOS auto-zoom on input focus (needs ≥16px) */
+  .form-control { font-size: 16px; }
 }
 
 /* ── LOADING ─────────────────────────────────────────────── */

@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Livre des Recettes — Portail</title>
+  <title>Livre des Recettes — UniCloud</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <div class="layout">
 
   <header class="topbar">
-    <a href="/dashboard" class="btn-back">← <span>Portail</span></a>
+    <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+    <a href="/dashboard" class="btn-back">← <span>UniCloud</span></a>
     <div class="topbar-app-name">📒 Livre des Recettes</div>
     <div class="topbar-user">
       <span id="user-name" style="color:var(--text-m);font-size:.85rem"></span>
@@ -18,13 +19,16 @@
     </div>
   </header>
 
-  <nav class="sidebar">
+  <nav class="sidebar" id="app-sidebar">
+    <button class="sidebar-close-btn" onclick="closeSidebar()">✕ Fermer</button>
     <div class="nav-section-title">Navigation</div>
     <button class="nav-item" data-section="dashboard"><span class="nav-icon">📊</span> Tableau de bord</button>
     <button class="nav-item" data-section="ajouter"><span class="nav-icon">➕</span> Ajouter</button>
     <button class="nav-item" data-section="historique"><span class="nav-icon">📜</span> Historique</button>
     <button class="nav-item admin-only" data-section="parametres"><span class="nav-icon">⚙️</span> Paramètres</button>
   </nav>
+
+  <div class="sidebar-backdrop" onclick="closeSidebar()"></div>
 
   <main class="main">
 
